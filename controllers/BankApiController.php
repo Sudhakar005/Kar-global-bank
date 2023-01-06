@@ -14,7 +14,7 @@ use app\models\InvestmentAccountTypes;
 use app\models\TransactionHistory;
 use app\models\TransactionTypes;
 
-class SiteController extends Controller
+class BankApiController extends Controller
 {
     public function behaviors()
     {
