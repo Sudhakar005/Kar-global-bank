@@ -141,14 +141,17 @@ class SiteController extends Controller
     {
         if(Yii::$app->request->isPost) {
             $data = Yii::$app->request->post();
+            /* Account create data validation */
             $validationResponse = $this->accountValidation($data);
             if($validationResponse["success"]) {
+                /* To check email address already present or not */
                 $getAccountEmailInfo = Accounts::find()->where(['email_id' => $data['email_id'], 'is_active' => 1])->asArray()->one();
                 if(isset($getAccountEmailInfo['email_id'])) {
                     $response["status"] = "error";
                     $response["message"] = "Email address is already exists!";
                     return json_encode($response, true);
                 }
+                /* To check mobile number already present or not */
                 $getAccountMobileInfo = Accounts::find()->where(['mobile_number' => $data['mobile_number'], 'is_active' => 1])->asArray()->one();
                 if(isset($getAccountMobileInfo['mobile_number'])) {
                     $response["status"] = "error";
@@ -159,9 +162,11 @@ class SiteController extends Controller
                 $accountNumberPrefix = "50100";
                 $generateAccountNumber = $accountNumberPrefix.rand(10000, 99999);
                 $accountModel->account_number = $generateAccountNumber;
+                /* To get account type id based on account type */
                 $getAccountTypeId = AccountTypes::find()->select('id')->where(['account_type_name' => $data['account_type']])->asArray()->one();
                 $getInvestmentTypeId = [];
                 if($data['account_type'] == "investment") {
+                    /* To get investment type id based on investment type */
                     $getInvestmentTypeId = InvestmentAccountTypes::find()->select('id')->where(['investment_type_name' => $data['investment_type']])->asArray()->one();
                 }
                 $accountModel->name = $data['name'];
@@ -171,7 +176,7 @@ class SiteController extends Controller
                 $accountModel->account_type_id = $getAccountTypeId['id'];
                 $accountModel->investment_type_id = isset($getInvestmentTypeId['id']) ? $getInvestmentTypeId['id'] : 0;
                 $accountModel->created_at = date("Y-m-d H:i:s");
-                if($accountModel->save()) {
+                if($accountModel->save()) { // To create account in the account table
                     $response['status'] = "success";
                     $response['message'] = "New account created successfully.";
                 } else {
@@ -193,6 +198,7 @@ class SiteController extends Controller
     {
         if(Yii::$app->request->isPost) {
             $data = Yii::$app->request->post();
+            /* Account update data validation */
             $validationResponse = $this->accountValidation($data);
             if($validationResponse["success"]) {
                 if(!isset($data['account_number'])) {
@@ -204,15 +210,18 @@ class SiteController extends Controller
                     $response["message"] = "Account number is required!";
                     return json_encode($response, true);
                 }
+                /* To get account information based on account number */
                 $getAccountInfo = Accounts::find()->where(['account_number' => $data['account_number'], 'is_active' => 1])->one();
                 if(!isset($getAccountInfo->account_number)) {
                     $response["status"] = "error";
                     $response["message"] = "Account number is invalid!";
                     return json_encode($response, true);
                 }
+                /* To get account type id based on account type */
                 $getAccountTypeId = AccountTypes::find()->select('id')->where(['account_type_name' => $data['account_type']])->asArray()->one();
                 $getInvestmentTypeId = [];
                 if($data['account_type'] == "investment") {
+                    /* To get investment type id based on investment type */
                     $getInvestmentTypeId = InvestmentAccountTypes::find()->select('id')->where(['investment_type_name' => $data['investment_type']])->asArray()->one();
                 }
                 $getAccountInfo->name = $data['name'];
@@ -221,7 +230,7 @@ class SiteController extends Controller
                 $getAccountInfo->address = $data['address'];
                 $getAccountInfo->account_type_id = $getAccountTypeId['id'];
                 $getAccountInfo->investment_type_id = isset($getInvestmentTypeId['id']) ? $getInvestmentTypeId['id'] : 0;
-                if($getAccountInfo->save()) {
+                if($getAccountInfo->save()) { // To update account information in the account table
                     $response['status'] = "success";
                     $response['message'] = "Account details updated successfully.";
                 } else {
@@ -252,6 +261,7 @@ class SiteController extends Controller
                 $response["message"] = "Account number is required!";
                 return json_encode($response, true);
             }
+            /* To get account information based on account number */
             $getAccountInfo = Accounts::find()->where(['account_number' => $data['account_number'], 'is_active' => 1])->one();
             if(!isset($getAccountInfo->account_number)) {
                 $response["status"] = "error";
@@ -259,7 +269,7 @@ class SiteController extends Controller
                 return json_encode($response, true);
             }
             $getAccountInfo->is_active = 0;
-            if($getAccountInfo->save()) {
+            if($getAccountInfo->save()) { // To update account status in the account table
                 $response['status'] = "success";
                 $response['message'] = "Account deleted successfully.";
             } else {
@@ -333,8 +343,10 @@ class SiteController extends Controller
     {
         if(Yii::$app->request->isPost) {
             $data = Yii::$app->request->post();
+            /* Transaction data validation */
             $getTransactionValidation = $this->transactionValidation($data);
             if($getTransactionValidation["success"]) {
+                /* To get account information based on account number */
                 $getAccountInfo = Accounts::find()->alias('accounts')->joinWith(['accounttype','investmenttype'])->where(['accounts.account_number' => $data['account_number'], 'accounts.is_active' => 1])->one();
                 if(!isset($getAccountInfo->account_number)) {
                     $response["status"] = "error";
@@ -403,12 +415,12 @@ class SiteController extends Controller
                 $saveTransactionHistory->transaction_type_id = $getTransactionModeDetails->id;
                 $saveTransactionHistory->transaction_amount = $amount;
                 $saveTransactionHistory->to_account_id = $toAccountId;
-                if($saveTransactionHistory->save()) {
+                if($saveTransactionHistory->save()) { // To save transaction history
                     $getAccountInfo->balance = $accountBalance;
-                    $getAccountInfo->save();
+                    $getAccountInfo->save(); // To update balance in the account table
                     if(!empty($toAccountId)) {
                         $getToAccountInfo->balance = $toAccountBalance;
-                        $getToAccountInfo->save();
+                        $getToAccountInfo->save(); // To update receiver's account balance in the account table
                     }
                     $response['status'] = "success";
                     $response['message'] = "Transaction completed successfully!";
