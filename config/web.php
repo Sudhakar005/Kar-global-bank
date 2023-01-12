@@ -59,6 +59,7 @@ $config = [
                 '/account/deposit' => '/bank-api/make-transaction',
                 '/account/withdrawal' => '/bank-api/make-transaction',
                 '/account/transfer' => '/bank-api/make-transaction',
+                '/' => '/bank-api/index'
             ],
         ],
     ],
