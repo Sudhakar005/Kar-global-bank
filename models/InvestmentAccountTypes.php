@@ -3,49 +3,23 @@
 namespace app\models;
 
 use Yii;
+use yii\base\Model;
 
-/**
- * This is the model class for table "investment_account_types".
- *
- * @property int $id
- * @property string|null $investment_type_name
- * @property int $is_active
- * @property string|null $created_at
- * @property string $modified_at
- */
-class InvestmentAccountTypes extends \yii\db\ActiveRecord
+class InvestmentAccountTypes extends Model
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
+    public static function findByType($accountType)
     {
-        return 'investment_account_types';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['is_active'], 'integer'],
-            [['created_at', 'modified_at'], 'safe'],
-            [['investment_type_name'], 'string', 'max' => 50],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'investment_type_name' => 'Investment Type Name',
-            'is_active' => 'Is Active',
-            'created_at' => 'Created At',
-            'modified_at' => 'Modified At',
-        ];
+        $jsonFileLink = Yii::getAlias('@app/store/data.json');
+        $getData = file_get_contents($jsonFileLink);
+        $getBankDetails = json_decode($getData, true);
+        $getInvestmentAccountTypeInfo = isset($getBankDetails['kar-global-bank']['investment_account_types']) ? $getBankDetails['kar-global-bank']['investment_account_types'] : [];
+        if(is_array($getInvestmentAccountTypeInfo)) {
+            foreach($getInvestmentAccountTypeInfo as $key => $value) {
+                if($value['investment_type_name'] == $accountType && $value['is_active'] == 1) {
+                    return $value['id'];
+                }
+            }
+        }
+        return 0;
     }
 }

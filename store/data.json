@@ -1,0 +1,188 @@
+{
+    "kar-global-bank": {
+        "bank_details": {
+            "id": 1,
+            "name": "Kar Global",
+            "ifsc_code": "KG1010GK",
+            "branch": "Chennai",
+            "state": "Tamilnadu",
+            "country": "India"
+        },
+        "account_types": [
+            {
+                "id": "1",
+                "account_type_name": "checking",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:45:48"
+            },
+            {
+                "id": "2",
+                "account_type_name": "investment",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:45:48"
+            }
+        ],
+        "investment_account_types": [
+            {
+                "id": "1",
+                "investment_type_name": "individual",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:45:48"
+            },
+            {
+                "id": "2",
+                "investment_type_name": "corporate",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:45:48"
+            }
+        ],
+        "accounts": [
+            {
+                "account_number": "5010013677",
+                "name": "Greg",
+                "email_id": "mithu@gmail.com",
+                "mobile_number": "2323232323",
+                "address": "chennaii",
+                "balance": 0,
+                "account_type_id": "2",
+                "investment_type_id": "1",
+                "id": 1,
+                "is_active": "1",
+                "created_at": "2023-01-13 11:09:50"
+            },
+            {
+                "account_number": "5010050933",
+                "name": "Mithu",
+                "email_id": "mithu@gmail.com",
+                "mobile_number": "2323232323",
+                "address": "chennaii",
+                "account_type_id": "2",
+                "investment_type_id": "1",
+                "id": 2,
+                "created_at": "2023-01-13 11:19:50",
+                "balance": 1550,
+                "is_active": "1"
+            },
+            {
+                "account_number": "5010071134",
+                "name": "Greg",
+                "email_id": "gregss@gmail.com",
+                "mobile_number": "9999999993",
+                "address": "chennai",
+                "balance": 200,
+                "account_type_id": "2",
+                "investment_type_id": "2",
+                "created_at": "2023-01-13 12:38:23",
+                "id": 4,
+                "is_active": "1"
+            },
+            {
+                "account_number": "5010093618",
+                "name": "Greg",
+                "email_id": "gregss@gmail.com",
+                "mobile_number": "9999999993",
+                "address": "chennai",
+                "balance": 0,
+                "account_type_id": "2",
+                "investment_type_id": "2",
+                "created_at": "2023-01-13 12:36:24",
+                "id": 3,
+                "is_active": "0"
+            }
+        ],
+        "transaction_types": [
+            {
+                "id": "1",
+                "type_name": "deposit",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:48:40"
+            },
+            {
+                "id": "2",
+                "type_name": "withdrawal",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:48:40"
+            },
+            {
+                "id": "3",
+                "type_name": "transfer",
+                "is_active": "1",
+                "created_at": "2022-12-19 20:48:40"
+            }
+        ],
+        "transaction_history": [
+            {
+                "account_id": 2,
+                "transaction_type_id": "1",
+                "transaction_amount": "150",
+                "to_account_id": "",
+                "created_at": "2023-01-15 15:33:15",
+                "id": 1,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "1",
+                "transaction_amount": "150",
+                "to_account_id": "",
+                "created_at": "2023-01-15 15:34:26",
+                "id": 2,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "1",
+                "transaction_amount": "150",
+                "to_account_id": "",
+                "created_at": "2023-01-15 16:25:01",
+                "id": 3,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "2",
+                "transaction_amount": "100",
+                "to_account_id": "",
+                "created_at": "2023-01-15 16:27:34",
+                "id": 4,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "2",
+                "transaction_amount": "100",
+                "to_account_id": "",
+                "created_at": "2023-01-15 16:27:41",
+                "id": 5,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "1",
+                "transaction_amount": "1500",
+                "to_account_id": "",
+                "created_at": "2023-01-15 16:27:50",
+                "id": 6,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "3",
+                "transaction_amount": "100",
+                "to_account_id": 4,
+                "created_at": "2023-01-15 16:36:59",
+                "id": 7,
+                "is_active": "1"
+            },
+            {
+                "account_id": 2,
+                "transaction_type_id": "3",
+                "transaction_amount": "100",
+                "to_account_id": 4,
+                "created_at": "2023-01-15 16:37:10",
+                "id": 8,
+                "is_active": "1"
+            }
+        ]
+    }
+}

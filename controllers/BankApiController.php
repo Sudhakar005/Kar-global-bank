@@ -66,7 +66,7 @@ class BankApiController extends Controller
     public function actionGetBankInfo()
     {
         if(Yii::$app->request->isGet) {
-            $getBankDetails = BankDetails::find()->asArray()->one();
+            $getBankDetails = BankDetails::find();
             return json_encode($getBankDetails, true);
         } else {
             $response['status'] = "error";
@@ -78,7 +78,7 @@ class BankApiController extends Controller
     public function actionGetAccountList()
     {
         if(Yii::$app->request->isGet) {
-            $getAccountList = Accounts::find()->select('account_id, account_number, name, email_id, mobile_number, address, balance, is_active, created_at, modified_at')->where(['is_active' => 1])->asArray()->all();
+            $getAccountList = Accounts::getAccountList();
             if(count($getAccountList) > 0 ) {
                 $response['status'] = "success";
                 $response['results'] = $getAccountList;
@@ -96,7 +96,7 @@ class BankApiController extends Controller
     public function actionGetAccountInfo($id)
     {
         if(Yii::$app->request->isGet) {
-            $getAccountInfo = Accounts::find()->select('account_number, name, email_id, mobile_number, address, balance, is_active, created_at, modified_at')->where(['account_number' => $id, 'is_active' => 1])->asArray()->one();
+            $getAccountInfo = Accounts::getAccountInfo($id);
             if($getAccountInfo) {
                 $response['status'] = "success";
                 $response['result'] = $getAccountInfo;
@@ -114,7 +114,7 @@ class BankApiController extends Controller
     public function actionGetAccountTypeInfo($id)
     {
         if(Yii::$app->request->isGet) {
-            $getAccountInfo = Accounts::find()->alias('accounts')->joinWith(['accounttype','investmenttype'])->where(['accounts.account_number' => $id, 'accounts.is_active' => 1])->asArray()->one();
+            $getAccountInfo = Accounts::getAccountTypeInfo($id);
             if($getAccountInfo) {
                 $data['account_number'] = isset($getAccountInfo['account_number']) ? $getAccountInfo['account_number'] : null;
                 $data['name'] = isset($getAccountInfo['name']) ? $getAccountInfo['name'] : null;
@@ -123,7 +123,6 @@ class BankApiController extends Controller
                 $data['investment_type'] = isset($getAccountInfo['investmenttype']['investment_type_name']) ? $getAccountInfo['investmenttype']['investment_type_name'] : null;
                 $data['is_active'] = isset($getAccountInfo['is_active']) ? $getAccountInfo['is_active'] : null;
                 $data['created_at'] = isset($getAccountInfo['created_at']) ? $getAccountInfo['created_at'] : null;
-                $data['modified_at'] = isset($getAccountInfo['modified_at']) ? $getAccountInfo['modified_at'] : null;
                 $response['status'] = "success";
                 $response['result'] = $data;
             } else {
@@ -145,38 +144,39 @@ class BankApiController extends Controller
             $validationResponse = $this->accountValidation($data);
             if($validationResponse["success"]) {
                 /* To check email address already present or not */
-                $getAccountEmailInfo = Accounts::find()->where(['email_id' => $data['email_id'], 'is_active' => 1])->asArray()->one();
-                if(isset($getAccountEmailInfo['email_id'])) {
+                $checkEmailExist = Accounts::findByEmailid($data['email_id']);
+                if($checkEmailExist) {
                     $response["status"] = "error";
                     $response["message"] = "Email address is already exists!";
                     return json_encode($response, true);
                 }
                 /* To check mobile number already present or not */
-                $getAccountMobileInfo = Accounts::find()->where(['mobile_number' => $data['mobile_number'], 'is_active' => 1])->asArray()->one();
-                if(isset($getAccountMobileInfo['mobile_number'])) {
+                $checkNumberExist = Accounts::findByMobileNumber($data['mobile_number']);
+                if($checkNumberExist) {
                     $response["status"] = "error";
                     $response["message"] = "Mobile number is already exists!";
                     return json_encode($response, true);
                 }
-                $accountModel = new Accounts;
+                $accountModel = [];
                 $accountNumberPrefix = "50100";
                 $generateAccountNumber = $accountNumberPrefix.rand(10000, 99999);
-                $accountModel->account_number = $generateAccountNumber;
+                $accountModel['account_number'] = $generateAccountNumber;
                 /* To get account type id based on account type */
-                $getAccountTypeId = AccountTypes::find()->select('id')->where(['account_type_name' => $data['account_type']])->asArray()->one();
+                $getAccountTypeId = AccountTypes::findByType($data['account_type']);
                 $getInvestmentTypeId = [];
                 if($data['account_type'] == "investment") {
                     /* To get investment type id based on investment type */
-                    $getInvestmentTypeId = InvestmentAccountTypes::find()->select('id')->where(['investment_type_name' => $data['investment_type']])->asArray()->one();
+                    $getInvestmentTypeId = InvestmentAccountTypes::findByType($data['investment_type']);
                 }
-                $accountModel->name = $data['name'];
-                $accountModel->email_id = $data['email_id'];
-                $accountModel->mobile_number = $data['mobile_number'];
-                $accountModel->address = $data['address'];
-                $accountModel->account_type_id = $getAccountTypeId['id'];
-                $accountModel->investment_type_id = isset($getInvestmentTypeId['id']) ? $getInvestmentTypeId['id'] : 0;
-                $accountModel->created_at = date("Y-m-d H:i:s");
-                if($accountModel->save()) { // To create account in the account table
+                $accountModel['name'] = $data['name'];
+                $accountModel['email_id'] = $data['email_id'];
+                $accountModel['mobile_number'] = $data['mobile_number'];
+                $accountModel['address'] = $data['address'];
+                $accountModel['account_type_id'] = $getAccountTypeId;
+                $accountModel['balance'] = 0;
+                $accountModel['investment_type_id'] = $getInvestmentTypeId;
+                $accountModel['created_at'] = date("Y-m-d H:i:s");
+                if(Accounts::save($accountModel, 'create')) { // To create account in the account table
                     $response['status'] = "success";
                     $response['message'] = "New account created successfully.";
                 } else {
@@ -211,26 +211,28 @@ class BankApiController extends Controller
                     return json_encode($response, true);
                 }
                 /* To get account information based on account number */
-                $getAccountInfo = Accounts::find()->where(['account_number' => $data['account_number'], 'is_active' => 1])->one();
-                if(!isset($getAccountInfo->account_number)) {
+                $checkAccountExists = Accounts::findByAccountNumber($data['account_number']);
+                if(!$checkAccountExists) {
                     $response["status"] = "error";
                     $response["message"] = "Account number is invalid!";
                     return json_encode($response, true);
                 }
                 /* To get account type id based on account type */
-                $getAccountTypeId = AccountTypes::find()->select('id')->where(['account_type_name' => $data['account_type']])->asArray()->one();
+                $getAccountTypeId = AccountTypes::findByType($data['account_type']);
                 $getInvestmentTypeId = [];
                 if($data['account_type'] == "investment") {
                     /* To get investment type id based on investment type */
-                    $getInvestmentTypeId = InvestmentAccountTypes::find()->select('id')->where(['investment_type_name' => $data['investment_type']])->asArray()->one();
+                    $getInvestmentTypeId = InvestmentAccountTypes::findByType($data['investment_type']);
                 }
-                $getAccountInfo->name = $data['name'];
-                $getAccountInfo->email_id = $data['email_id'];
-                $getAccountInfo->mobile_number = $data['mobile_number'];
-                $getAccountInfo->address = $data['address'];
-                $getAccountInfo->account_type_id = $getAccountTypeId['id'];
-                $getAccountInfo->investment_type_id = isset($getInvestmentTypeId['id']) ? $getInvestmentTypeId['id'] : 0;
-                if($getAccountInfo->save()) { // To update account information in the account table
+                $updateAccountInfo = [];
+                $updateAccountInfo['account_number'] = $data['account_number'];
+                $updateAccountInfo['name'] = $data['name'];
+                $updateAccountInfo['email_id'] = $data['email_id'];
+                $updateAccountInfo['mobile_number'] = $data['mobile_number'];
+                $updateAccountInfo['address'] = $data['address'];
+                $updateAccountInfo['account_type_id'] = $getAccountTypeId;
+                $updateAccountInfo['investment_type_id'] = $getInvestmentTypeId;
+                if(Accounts::save($updateAccountInfo, 'update')) { // To update account information in the account table
                     $response['status'] = "success";
                     $response['message'] = "Account details updated successfully.";
                 } else {
@@ -262,14 +264,13 @@ class BankApiController extends Controller
                 return json_encode($response, true);
             }
             /* To get account information based on account number */
-            $getAccountInfo = Accounts::find()->where(['account_number' => $data['account_number'], 'is_active' => 1])->one();
-            if(!isset($getAccountInfo->account_number)) {
+            $checkAccountExists = Accounts::findByAccountNumber($data['account_number']);
+            if(!$checkAccountExists) {
                 $response["status"] = "error";
                 $response["message"] = "Account number is invalid!";
                 return json_encode($response, true);
             }
-            $getAccountInfo->is_active = 0;
-            if($getAccountInfo->save()) { // To update account status in the account table
+            if(Accounts::remove($data['account_number'])) { // To update account status in the account table
                 $response['status'] = "success";
                 $response['message'] = "Account deleted successfully.";
             } else {
@@ -347,20 +348,20 @@ class BankApiController extends Controller
             $getTransactionValidation = $this->transactionValidation($data);
             if($getTransactionValidation["success"]) {
                 /* To get account information based on account number */
-                $getAccountInfo = Accounts::find()->alias('accounts')->joinWith(['accounttype','investmenttype'])->where(['accounts.account_number' => $data['account_number'], 'accounts.is_active' => 1])->one();
-                if(!isset($getAccountInfo->account_number)) {
+                $getAccountInfo = Accounts::getAccountTypeInfo($data['account_number']);
+                if(!isset($getAccountInfo['account_number'])) {
                     $response["status"] = "error";
                     $response["message"] = "Account number is invalid!";
                     return json_encode($response, true);
                 }
-                $accountBalance = isset($getAccountInfo->balance) ? $getAccountInfo->balance : 0;
+                $accountBalance = isset($getAccountInfo['balance']) ? $getAccountInfo['balance'] : 0;
                 $amount = isset($data['amount']) ? $data['amount'] : "";
-                $accountType = isset($getAccountInfo->accounttype->account_type_name) ? $getAccountInfo->accounttype->account_type_name : "";
-                $investmentAccountType = isset($getAccountInfo->investmenttype->investment_type_name) ? $getAccountInfo->investmenttype->investment_type_name : "";
+                $accountType = isset($getAccountInfo['accounttype']['account_type_name']) ? $getAccountInfo['accounttype']['account_type_name'] : "";
+                $investmentAccountType = isset($getAccountInfo['investmenttype']['investment_type_name']) ? $getAccountInfo['investmenttype']['investment_type_name'] : "";
                 $getUrlInfoArray = explode('/', Yii::$app->request->pathInfo);
                 $getTransactionMode = isset($getUrlInfoArray['1']) ? $getUrlInfoArray['1'] : "";
-                $getTransactionModeDetails = TransactionTypes::find()->where(['type_name' => $getTransactionMode])->one();
-                if(!isset($getTransactionModeDetails->id)) {
+                $getTransactionModeId = TransactionTypes::findByType($getTransactionMode);
+                if($getTransactionModeId == '0') {
                     $response["status"] = "error";
                     $response["message"] = "Transaction mode is invalid!";
                     return json_encode($response, true);
@@ -390,8 +391,8 @@ class BankApiController extends Controller
                         $response["message"] = "To account number is required!";
                         return json_encode($response, true);
                     }
-                    $getToAccountInfo = Accounts::find()->where(['account_number' => $data['to_account_number'], 'is_active' => 1])->one();
-                    if(!isset($getToAccountInfo->account_number)) {
+                    $getToAccountInfo = Accounts::getAccountTypeInfo($data['to_account_number']);
+                    if(!isset($getToAccountInfo['account_number'])) {
                         $response["status"] = "error";
                         $response["message"] = "To account number is invalid!";
                         return json_encode($response, true);
@@ -405,22 +406,21 @@ class BankApiController extends Controller
                         $response['message'] = "Insufficient balance!";
                         return json_encode($response, true);
                     }
-                    $toAccountId = isset($getToAccountInfo->account_id) ? $getToAccountInfo->account_id : "";
-					$toAccountBalance = isset($getToAccountInfo->balance) ? $getToAccountInfo->balance : "";
+                    $toAccountId = isset($getToAccountInfo['id']) ? $getToAccountInfo['id'] : "";
+					$toAccountBalance = isset($getToAccountInfo['balance']) ? $getToAccountInfo['balance'] : "";
                     $accountBalance -= $amount;
 					$toAccountBalance += $amount;
                 }
-                $saveTransactionHistory = new TransactionHistory;
-                $saveTransactionHistory->account_id = $getAccountInfo->account_id;
-                $saveTransactionHistory->transaction_type_id = $getTransactionModeDetails->id;
-                $saveTransactionHistory->transaction_amount = $amount;
-                $saveTransactionHistory->to_account_id = $toAccountId;
-                if($saveTransactionHistory->save()) { // To save transaction history
-                    $getAccountInfo->balance = $accountBalance;
-                    $getAccountInfo->save(); // To update balance in the account table
+                $saveTransactionHistory = [];
+                $saveTransactionHistory['account_id'] = $getAccountInfo['id'];
+                $saveTransactionHistory['transaction_type_id'] = $getTransactionModeId;
+                $saveTransactionHistory['transaction_amount'] = $amount;
+                $saveTransactionHistory['to_account_id'] = $toAccountId;
+                $saveTransactionHistory['created_at'] = date("Y-m-d H:i:s");
+                if(TransactionHistory::save($saveTransactionHistory)) { // To save transaction history
+                    Accounts::updateBalance($accountBalance, $data['account_number']); // To update balance in the account table
                     if(!empty($toAccountId)) {
-                        $getToAccountInfo->balance = $toAccountBalance;
-                        $getToAccountInfo->save(); // To update receiver's account balance in the account table
+                        Accounts::updateBalance($toAccountBalance, $data['to_account_number']); // To update receiver's account balance in the account table
                     }
                     $response['status'] = "success";
                     $response['message'] = "Transaction completed successfully!";

@@ -3,50 +3,29 @@
 namespace app\models;
 
 use Yii;
+use yii\base\Model;
 
-/**
- * This is the model class for table "transaction_history".
- *
- * @property int $transaction_id
- * @property int|null $account_id
- * @property int|null $transaction_type_id
- * @property int $transaction_amount
- * @property int|null $to_account_id
- * @property string|null $created_at
- */
-class TransactionHistory extends \yii\db\ActiveRecord
+class TransactionHistory extends Model
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
+    public static function save($data)
     {
-        return 'transaction_history';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['account_id', 'transaction_type_id', 'transaction_amount', 'to_account_id'], 'integer'],
-            [['created_at'], 'safe'],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'transaction_id' => 'Transaction ID',
-            'account_id' => 'Account ID',
-            'transaction_type_id' => 'Transaction Type ID',
-            'transaction_amount' => 'Transaction Amount',
-            'to_account_id' => 'To Account ID',
-            'created_at' => 'Created At',
-        ];
+        $jsonFileLink = Yii::getAlias('@app/store/data.json');
+        $getData = file_get_contents($jsonFileLink);
+        $getAccountDetails = json_decode($getData, true);
+        $getTransactionInfo = isset($getAccountDetails['kar-global-bank']['transaction_history']) ? $getAccountDetails['kar-global-bank']['transaction_history'] : [];
+        $index = count($getTransactionInfo);
+        $data['id'] = count($getTransactionInfo) + 1;
+        $data['is_active'] = '1';
+        if(count($getTransactionInfo) > 0) {
+            $getTransactionInfo[$index] = $data;
+            $getAccountDetails['kar-global-bank']['transaction_history'] = $getTransactionInfo;
+        } else {
+            $getTransactionInfo = $data;
+            $getAccountDetails['kar-global-bank']['transaction_history'][] = $getTransactionInfo;
+        }
+        $fileOpen = fopen($jsonFileLink, 'w+');
+        fwrite($fileOpen, json_encode($getAccountDetails, JSON_PRETTY_PRINT));
+        fclose($fileOpen);
+        return true;
     }
 }

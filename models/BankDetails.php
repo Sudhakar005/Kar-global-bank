@@ -3,49 +3,31 @@
 namespace app\models;
 
 use Yii;
+use yii\base\Model;
 
-/**
- * This is the model class for table "bank_details".
- *
- * @property int $id
- * @property string|null $name
- * @property string|null $ifsc_code
- * @property string|null $branch
- * @property string|null $state
- * @property string|null $country
- */
-class BankDetails extends \yii\db\ActiveRecord
+class BankDetails extends Model
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
+    public static function find()
     {
-        return 'bank_details';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['name', 'ifsc_code', 'branch', 'state', 'country'], 'string', 'max' => 25],
+        $data = [
+            'id' => 1,
+            'name' => 'Kar Global',
+            'ifsc_code' => 'KG1010GK',
+            'branch' => 'Chennai',
+            'state' => 'Tamilnadu',
+            'country' => 'India',
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'ifsc_code' => 'Ifsc Code',
-            'branch' => 'Branch',
-            'state' => 'State',
-            'country' => 'Country',
-        ];
+        $jsonFileLink = Yii::getAlias('@app/store/data.json');
+        $getData = file_get_contents($jsonFileLink);
+        $getBankDetails = json_decode($getData, true);
+        if(isset($getBankDetails['kar-global-bank']['bank_details'])) {
+            $getBankDetails['kar-global-bank']['bank_details'] = $data;
+        } else {
+            $getBankDetails['kar-global-bank']['bank_details'] = $data;
+        }
+        $fileOpen = fopen($jsonFileLink, 'w+');
+        fwrite($fileOpen, json_encode($getBankDetails, JSON_PRETTY_PRINT));
+        fclose($fileOpen);
+        return $data;
     }
 }
