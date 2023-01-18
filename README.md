@@ -78,8 +78,8 @@ LIST OF API's
 
 1) http://localhost/kar-global-bank/info - To get bank information
 2) http://localhost/kar-global-bank/account - To get all active accounts\
-3) http://localhost/kar-global-bank/account/<account number> - To get specific account information based on account number
-4) http://localhost/kar-global-bank/account/checking/<account number> - To get specific account type information based on the account number
+3) http://localhost/kar-global-bank/account/'account number' - To get specific account information based on account number
+4) http://localhost/kar-global-bank/account/checking/'account number' - To get specific account type information based on the account number
 
 ### POST API's
 
@@ -97,6 +97,7 @@ API ENDPOINT DETAILS
 ### 1) SHOW BANK INFO
 
 URL: http://localhost/kar-global-bank/info
+
 METHOD: GET
 OUTPUT:
 ~~~
