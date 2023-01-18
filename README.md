@@ -99,6 +99,7 @@ API ENDPOINT DETAILS
 URL: http://localhost/kar-global-bank/info
 
 METHOD: GET
+
 OUTPUT:
 ~~~
 {
@@ -114,7 +115,9 @@ OUTPUT:
 ### 2) SHOW ALL ACCOUNTS
 
 URL: http://localhost/kar-global-bank/account
+
 METHOD: GET
+
 OUTPUT:
 ~~~
 {
@@ -153,7 +156,9 @@ OUTPUT:
 ### 3) SHOW SPECIFIC ACCOUNT INFO
 
 URL: http://localhost/kar-global-bank/account/5010038479
+
 METHOD: GET
+
 OUTPUT:
 ~~~
 {
@@ -177,7 +182,9 @@ OUTPUT:
 ### 4) SHOW SPECIFIC ACCOUNT TYPE
 
 URL: http://localhost/kar-global-bank/account/checking/5010038479
+
 METHOD: GET
+
 OUTPUT:
 ~~~
 {
@@ -197,7 +204,9 @@ OUTPUT:
 ### 5) CREATE NEW ACCOUNT
 
 URL: http://localhost/kar-global-bank/account/create
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'name="Adam Mathew"' \
@@ -217,7 +226,9 @@ OUTPUT:
 ### 6) UPDATE ACCOUNT INFORMATION
 
 URL: http://localhost/kar-global-bank/account/modify
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'name="Mithu"' \
@@ -239,7 +250,9 @@ OUTPUT:
 ### 7) REMOVE ACCOUNT
 
 URL: http://localhost/kar-global-bank/account/remove
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'account_number="5010093618"'
@@ -255,7 +268,9 @@ OUTPUT:
 ### 8) DEPOSIT AMOUNT INTO AN ACCOUNT
 
 URL: http://localhost/kar-global-bank/account/deposit
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'account_number="5010050933"' \
@@ -272,7 +287,9 @@ OUTPUT:
 ### 9) WITHDRAW AMOUNT FROM ACCOUNT
 
 URL: http://localhost/kar-global-bank/account/withdrawal
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'account_number="5010050933"' \
@@ -289,7 +306,9 @@ OUTPUT:
 ### 10) TRANSFER AMOUNT FROM ONE ACCOUNT TO ANOTHER ACCOUNT
 
 URL: http://localhost/kar-global-bank/account/transfer
+
 METHOD: POST
+
 INPUT:
 ~~~
 --form 'account_number="5010050933"' \
